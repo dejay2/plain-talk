@@ -5,7 +5,8 @@
   "keywords": ["pi-package", "plain-english", "plain-talk", "accessibility"],
   "license": "MIT",
   "peerDependencies": {
-    "@earendil-works/pi-coding-agent": "*"
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
   },
   "pi": {
     "extensions": ["extensions"]
