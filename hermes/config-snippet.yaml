@@ -1,0 +1,5 @@
+# Append to ~/.hermes/config.yaml
+hooks:
+  pre_llm_call:
+    - command: "~/.hermes/agent-hooks/plain-talk.sh"
+      timeout: 10
