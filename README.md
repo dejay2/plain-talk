@@ -13,7 +13,7 @@ source of truth), packaged for each assistant:
 |---|---|---|
 | **pi** | Extension that injects the rules into every session, with a `/plain-talk` toggle and a status badge | `pi install git:github.com/dejay2/plain-talk` |
 | **Claude Code** | A SessionStart hook (auto-injects the rules every chat) + a `/plain-talk` toggle skill | See [`claude-code/`](claude-code/) |
-| **Codex** | `AGENTS.md` instructions + optional skill | See [`codex/`](codex/) |
+| **Codex** | SessionStart hook (same system as Claude Code) + optional skill | See [`codex/`](codex/) |
 | **Hermes** | Snippet to append to `SOUL.md` | See [`hermes/`](hermes/) |
 
 ## Claude Code install (quick)

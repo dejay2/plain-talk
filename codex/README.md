@@ -1,17 +1,29 @@
 # Codex setup
 
-Codex reads standing instructions from `AGENTS.md` files. To enable Plain Talk
-for Codex, do ONE of:
+Codex supports the same hook system as Claude Code, so Plain Talk gets
+injected automatically at the start of every session.
 
-**Everywhere (recommended):** append the rules to your global instructions file:
+**Hook install (recommended):**
 
 ```bash
-mkdir -p ~/.codex
-cat INSTRUCTIONS.md >> ~/.codex/AGENTS.md
+# 1. Copy the hook
+mkdir -p ~/.codex/hooks
+cp hooks/plain-talk-hook.sh ~/.codex/hooks/
+chmod +x ~/.codex/hooks/plain-talk-hook.sh
+
+# 2. Add this entry to the "SessionStart" array in ~/.codex/hooks.json:
+#    (see hooks-snippet.json)
 ```
 
-**Per project:** copy `INSTRUCTIONS.md` into the project root as `AGENTS.md`
-(or append it to the existing one).
+Toggle by creating/removing the file `~/.codex/plain-talk-off`:
 
-**Optional skill:** copy `skills/plain-talk/` into `~/.codex/skills/` so Codex
-can load the rules on demand too.
+```bash
+touch ~/.codex/plain-talk-off   # off
+rm ~/.codex/plain-talk-off      # on
+```
+
+**Skill (optional):** copy `skills/plain-talk/` into `~/.codex/skills/` so
+Codex can also load the rules on demand.
+
+**Fallback:** if hooks aren't available in your Codex version, append
+`../INSTRUCTIONS.md` to `~/.codex/AGENTS.md` instead.

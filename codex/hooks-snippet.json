@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.codex/hooks/plain-talk-hook.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
