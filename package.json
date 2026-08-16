@@ -1,0 +1,13 @@
+{
+  "name": "plain-talk",
+  "version": "1.0.0",
+  "description": "Plain Talk: makes AI coding assistants explain everything in simple everyday language, in the user's own language. Pi extension plus adapters for Claude Code, Codex, and Hermes.",
+  "keywords": ["pi-package", "plain-english", "plain-talk", "accessibility"],
+  "license": "MIT",
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "pi": {
+    "extensions": ["extensions"]
+  }
+}
