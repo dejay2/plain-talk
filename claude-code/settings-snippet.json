@@ -11,6 +11,18 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/plain-talk-nudge.sh",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }
