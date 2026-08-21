@@ -127,49 +127,54 @@ export default function (pi: ExtensionAPI) {
 				};
 			}
 
-			// Build the menu labels. Mark the recommended option, add the freeform row.
-			const labels = params.options.map((o) =>
-				o.label === params.recommended ? `${o.label}  (suggested)` : o.label,
-			);
-			const choice = await ctx.ui.select(params.question, [...labels, TYPE_OWN_ANSWER]);
+			pi.events.emit("herdr:blocked", { active: true, label: params.question });
+			try {
+				// Build the menu labels. Mark the recommended option, add the freeform row.
+				const labels = params.options.map((o) =>
+					o.label === params.recommended ? `${o.label}  (suggested)` : o.label,
+				);
+				const choice = await ctx.ui.select(params.question, [...labels, TYPE_OWN_ANSWER]);
 
-			if (choice === undefined) {
-				return {
-					content: [
-						{
-							type: "text",
-							text: "The user closed the question without answering. Do not guess — continue only if you safely can, otherwise wait for the user.",
-						},
-					],
-					details: { question: params.question, options: simpleOptions, answer: null } as AskDetails,
-				};
-			}
-
-			if (choice === TYPE_OWN_ANSWER) {
-				const typed = await ctx.ui.input(params.question, "Type your answer…");
-				if (typed === undefined || typed.trim() === "") {
+				if (choice === undefined) {
 					return {
-						content: [{ type: "text", text: "The user closed the question without answering." }],
+						content: [
+							{
+								type: "text",
+								text: "The user closed the question without answering. Do not guess — continue only if you safely can, otherwise wait for the user.",
+							},
+						],
 						details: { question: params.question, options: simpleOptions, answer: null } as AskDetails,
 					};
 				}
-				return {
-					content: [{ type: "text", text: `The user typed their own answer: "${typed.trim()}"` }],
-					details: {
-						question: params.question,
-						options: simpleOptions,
-						answer: typed.trim(),
-						wasCustom: true,
-					} as AskDetails,
-				};
-			}
 
-			const picked = choice.replace(/  \(suggested\)$/, "");
-			const index = simpleOptions.indexOf(picked) + 1;
-			return {
-				content: [{ type: "text", text: `The user picked: ${index > 0 ? `${index}. ` : ""}${picked}` }],
-				details: { question: params.question, options: simpleOptions, answer: picked } as AskDetails,
-			};
+				if (choice === TYPE_OWN_ANSWER) {
+					const typed = await ctx.ui.input(params.question, "Type your answer…");
+					if (typed === undefined || typed.trim() === "") {
+						return {
+							content: [{ type: "text", text: "The user closed the question without answering." }],
+							details: { question: params.question, options: simpleOptions, answer: null } as AskDetails,
+						};
+					}
+					return {
+						content: [{ type: "text", text: `The user typed their own answer: "${typed.trim()}"` }],
+						details: {
+							question: params.question,
+							options: simpleOptions,
+							answer: typed.trim(),
+							wasCustom: true,
+						} as AskDetails,
+					};
+				}
+
+				const picked = choice.replace(/  \(suggested\)$/, "");
+				const index = simpleOptions.indexOf(picked) + 1;
+				return {
+					content: [{ type: "text", text: `The user picked: ${index > 0 ? `${index}. ` : ""}${picked}` }],
+					details: { question: params.question, options: simpleOptions, answer: picked } as AskDetails,
+				};
+			} finally {
+				pi.events.emit("herdr:blocked", { active: false });
+			}
 		},
 	});
 }
