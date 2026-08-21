@@ -139,6 +139,7 @@ export default function (pi: ExtensionAPI) {
 				};
 			}
 
+			// Herdr's pi connection reads this event. Keep it active only while a question screen is open.
 			pi.events.emit("herdr:blocked", { active: true, label: params.question });
 			try {
 				// Build the menu labels. Mark the recommended option, add the freeform row.

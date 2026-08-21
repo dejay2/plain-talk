@@ -16,6 +16,9 @@ source of truth), packaged for each assistant:
 | **Codex** | SessionStart hook + UserPromptSubmit nudge (same system as Claude Code) + optional skill. Questions use Codex's built-in question tool when it works, plain-text menus otherwise | See [`codex/`](codex/) |
 | **Hermes** | `pre_llm_call` shell hook, first-turn injection | See [`hermes/`](hermes/) |
 
+When pi runs through Herdr, Herdr shows it as waiting on the user only while
+Plain Talk's question menu or answer box is open.
+
 ## Claude Code install (quick)
 
 ```bash
