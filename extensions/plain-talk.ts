@@ -112,7 +112,7 @@ export default function (pi: ExtensionAPI) {
 		parameters: AskParams,
 		executionMode: "sequential",
 
-		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+		async execute(_toolCallId, params, signal, _onUpdate, ctx) {
 			const simpleOptions = params.options.map((o) => o.label);
 
 			if (!ctx.hasUI) {
@@ -127,13 +127,27 @@ export default function (pi: ExtensionAPI) {
 				};
 			}
 
+			if (signal?.aborted) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: "The user closed the question without answering. Do not guess — continue only if you safely can, otherwise wait for the user.",
+						},
+					],
+					details: { question: params.question, options: simpleOptions, answer: null } as AskDetails,
+				};
+			}
+
 			pi.events.emit("herdr:blocked", { active: true, label: params.question });
 			try {
 				// Build the menu labels. Mark the recommended option, add the freeform row.
 				const labels = params.options.map((o) =>
 					o.label === params.recommended ? `${o.label}  (suggested)` : o.label,
 				);
-				const choice = await ctx.ui.select(params.question, [...labels, TYPE_OWN_ANSWER]);
+				const choice = await ctx.ui.select(params.question, [...labels, TYPE_OWN_ANSWER], {
+					signal,
+				});
 
 				if (choice === undefined) {
 					return {
@@ -148,7 +162,7 @@ export default function (pi: ExtensionAPI) {
 				}
 
 				if (choice === TYPE_OWN_ANSWER) {
-					const typed = await ctx.ui.input(params.question, "Type your answer…");
+					const typed = await ctx.ui.input(params.question, "Type your answer…", { signal });
 					if (typed === undefined || typed.trim() === "") {
 						return {
 							content: [{ type: "text", text: "The user closed the question without answering." }],

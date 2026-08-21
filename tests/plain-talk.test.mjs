@@ -39,8 +39,8 @@ function loadAskTool() {
 	return { askTool, events };
 }
 
-function executeAsk(askTool, ctx) {
-	return askTool.execute("question-1", PARAMS, undefined, undefined, ctx);
+function executeAsk(askTool, ctx, signal) {
+	return askTool.execute("question-1", PARAMS, signal, undefined, ctx);
 }
 
 function interactiveContext({ select, input = async () => undefined }) {
@@ -51,6 +51,17 @@ function interactiveContext({ select, input = async () => undefined }) {
 }
 
 const nextTick = () => new Promise((resolve) => setImmediate(resolve));
+
+function pendingScreen(controller, opened) {
+	return (...args) => {
+		const options = args.at(-1);
+		opened.resolve();
+		assert.equal(options.signal, controller.signal);
+		return new Promise((resolve) => {
+			options.signal.addEventListener("abort", () => resolve(undefined), { once: true });
+		});
+	};
+}
 
 test("reports blocked for the full question, including a typed answer", async () => {
 	const select = Promise.withResolvers();
@@ -105,6 +116,97 @@ test("returns a menu choice and clears blocked", async () => {
 		},
 	});
 	assert.deepEqual(events, [BLOCKED_EVENT, CLEARED_EVENT]);
+});
+
+test("stopping while the menu is open clears blocked", async () => {
+	const controller = new AbortController();
+	const opened = Promise.withResolvers();
+	const { askTool, events } = loadAskTool();
+	const execution = executeAsk(
+		askTool,
+		interactiveContext({ select: pendingScreen(controller, opened) }),
+		controller.signal,
+	);
+
+	await opened.promise;
+	assert.deepEqual(events, [BLOCKED_EVENT]);
+
+	controller.abort();
+	assert.deepEqual(await execution, {
+		content: [
+			{
+				type: "text",
+				text: "The user closed the question without answering. Do not guess — continue only if you safely can, otherwise wait for the user.",
+			},
+		],
+		details: {
+			question: QUESTION,
+			options: ["First choice", "Second choice"],
+			answer: null,
+		},
+	});
+	assert.deepEqual(events, [BLOCKED_EVENT, CLEARED_EVENT]);
+});
+
+test("stopping while the typing box is open clears blocked", async () => {
+	const controller = new AbortController();
+	const opened = Promise.withResolvers();
+	const { askTool, events } = loadAskTool();
+	const execution = executeAsk(
+		askTool,
+		interactiveContext({
+			select: async () => TYPE_OWN_ANSWER,
+			input: pendingScreen(controller, opened),
+		}),
+		controller.signal,
+	);
+
+	await opened.promise;
+	assert.deepEqual(events, [BLOCKED_EVENT]);
+
+	controller.abort();
+	assert.deepEqual(await execution, {
+		content: [{ type: "text", text: "The user closed the question without answering." }],
+		details: {
+			question: QUESTION,
+			options: ["First choice", "Second choice"],
+			answer: null,
+		},
+	});
+	assert.deepEqual(events, [BLOCKED_EVENT, CLEARED_EVENT]);
+});
+
+test("a question stopped before opening sends no Herdr events", async () => {
+	const controller = new AbortController();
+	controller.abort();
+	let opened = false;
+	const { askTool, events } = loadAskTool();
+	const result = await executeAsk(
+		askTool,
+		interactiveContext({
+			select: async () => {
+				opened = true;
+				return undefined;
+			},
+		}),
+		controller.signal,
+	);
+
+	assert.deepEqual(result, {
+		content: [
+			{
+				type: "text",
+				text: "The user closed the question without answering. Do not guess — continue only if you safely can, otherwise wait for the user.",
+			},
+		],
+		details: {
+			question: QUESTION,
+			options: ["First choice", "Second choice"],
+			answer: null,
+		},
+	});
+	assert.equal(opened, false);
+	assert.deepEqual(events, []);
 });
 
 for (const testCase of [
