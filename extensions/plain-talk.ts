@@ -143,8 +143,11 @@ export default function (pi: ExtensionAPI) {
 			pi.events.emit("herdr:blocked", { active: true, label: params.question });
 			try {
 				// Build the menu labels. Mark the recommended option, add the freeform row.
+				// one space before the tag: herdr-web-ui's screen reader rejects any menu row
+				// containing two consecutive spaces (its two-column command-palette check), so a
+				// double-spaced marker makes the whole question fall back to a keys-only card
 				const labels = params.options.map((o) =>
-					o.label === params.recommended ? `${o.label}  (suggested)` : o.label,
+					o.label === params.recommended ? `${o.label} (suggested)` : o.label,
 				);
 				const choice = await ctx.ui.select(params.question, [...labels, TYPE_OWN_ANSWER], {
 					signal,
@@ -181,7 +184,7 @@ export default function (pi: ExtensionAPI) {
 					};
 				}
 
-				const picked = choice.replace(/  \(suggested\)$/, "");
+				const picked = choice.replace(/ \(suggested\)$/, "");
 				const index = simpleOptions.indexOf(picked) + 1;
 				return {
 					content: [{ type: "text", text: `The user picked: ${index > 0 ? `${index}. ` : ""}${picked}` }],
